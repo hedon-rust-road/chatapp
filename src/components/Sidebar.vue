@@ -2,7 +2,7 @@
   <div class="sidebar">
     <div class="workspace">
       <div class="workspace-name">{{ workspaceName }}</div>
-      <button class="add-channel">+</button>
+      <button class="add-channel" @click="addChannel">+</button>
     </div>
 
     <div class="channels">
@@ -16,8 +16,9 @@
 
     <div class="direct-messages">
       <h2>Direct Messages</h2>
+      <!-- Example of Direct Messages; this could be implemented similarly to channels if needed -->
       <ul>
-        <li v-for="user in users" :key="user.id">
+        <li v-for="user in directMessages" :key="user.id">
           <img :src="user.avatar" class="avatar" alt="Avatar" /> {{ user.name }}
         </li>
       </ul>
@@ -27,18 +28,28 @@
 
 <script>
 export default {
-  data() {
-    return {
-      workspaceName: 'My Workspace',
-      channels: [
-        { id: 1, name: 'general' },
-        { id: 2, name: 'random' },
-      ],
-      users: [
-        { id: 1, name: 'Alice', avatar: 'https://via.placeholder.com/24' },
-        { id: 2, name: 'Bob', avatar: 'https://via.placeholder.com/24' },
-      ],
-    };
+  computed: {
+    workspaceName() {
+      return this.$store.getters.getWorkspace.name || 'No Workspace';
+    },
+    channels() {
+      return this.$store.getters.getChannels;
+    },
+    directMessages() {
+      // Placeholder for direct messages, if needed.
+      // This could be another state managed by Vuex.
+      return [];
+    },
+  },
+  methods: {
+    addChannel() {
+      // Trigger an action to add a new channel
+      const newChannel = {
+        id: Date.now().toString(), // Unique ID for the new channel
+        name: `Channel ${this.channels.length + 1}`,
+      };
+      this.$store.dispatch('addChannel', newChannel);
+    },
   },
 };
 </script>
