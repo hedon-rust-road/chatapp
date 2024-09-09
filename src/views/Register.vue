@@ -44,17 +44,21 @@ export default {
     };
   },
   methods: {
-    register() {
-      // Perform registration logic here, e.g., API call
-      const userData = {
-        fullName: this.fullName,
-        email: this.email,
-        workspaceName: this.workspaceName,
-        password: this.password,
-      };
+    async register() {
+      try {
+        const user = await this.$store.dispatch('signup', {
+          email: this.email,
+          password: this.password,
+          fullname: this.fullName,
+          workspace: this.workspaceName,
+        });
 
-      console.log('User Data:', userData);
-      this.$router.push('/chat');
+        console.log('Signup successful, user:', user);
+        this.$router.push('/'); // Redirect to the chat page after successful registration.
+      } catch (error) {
+        console.error('Signup failed:', error);
+        // Handle the error appropriately, e.g., show an error message to the user.
+      }
     },
   },
 };

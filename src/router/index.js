@@ -4,10 +4,9 @@ import Register from '../views/Register.vue';
 import Chat from '../views/Chat.vue';
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  { path: '/', name: 'Chat', component: Chat, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-  { path: '/chat', name: 'Chat', component: Chat, meta: { requiresAuth: true } },
 ];
 
 const router = createRouter({
