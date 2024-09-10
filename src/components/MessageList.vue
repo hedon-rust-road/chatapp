@@ -25,7 +25,7 @@ export default {
       return this.$store.getters.getMessagesForActiveChannel;
     },
     activeChannelId() {
-      let channel = this.$store.getters.activeChannel;
+      let channel = this.$store.state.activeChannel;
       if (!channel) {
         return null;
       }
@@ -37,7 +37,7 @@ export default {
       if (newChannelId) {
         this.fetchMessages(newChannelId);
       }
-    },
+    }
   },
   methods: {
     formatTime(time) {
@@ -46,13 +46,13 @@ export default {
     },
     fetchMessages(channelId) {
       this.$store.dispatch('fetchMessagesForChannel', channelId);
-    },
+    }
   },
   mounted() {
     if (this.activeChannelId) {
       this.fetchMessages(this.activeChannelId);
     }
-  },
+  }
 };
 </script>
 

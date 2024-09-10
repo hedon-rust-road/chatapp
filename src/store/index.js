@@ -151,14 +151,16 @@ export default createStore({
             }
           ]
           */
-        let messages = response.data;
+          let messages = response.data;
+          console.log("state.users", state.users);
+          console.log("messages", messages);
           messages = messages.map((message) => {
-            const user = state.users[message.senderId];
             return {
               ...message,
-              sender: user,
+              sender: state.users[message.senderId],
             };
           } );
+          console.log('Fetched messages for channel:', messages);
           commit('setMessages', { channelId, messages });
         } catch (error) {
           console.error(`Failed to fetch messages for channel ${channelId}:`, error);
@@ -171,7 +173,7 @@ export default createStore({
       // update the messages in local storage
       localStorage.setItem('messages', JSON.stringify(this.state.messages));
     },
-    localUserState({ commit }) {
+    loadUserState({ commit }) {
       commit('loadUserState');
     },
   },
@@ -213,34 +215,43 @@ export default createStore({
 
 async function loadState(response, commit) {
   const token = response.data.token;
-  const user = jwtDecode(token);
+  const user = jwtDecode(token); // Decode the JWT to get user info
   const workspace = { id: user.wsId, name: user.wsName };
 
   try {
-
+    // fetch all workspace users
     const usersResp = await axios.get(`${getUrlBase()}/users`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
+
+    console.log('Users:', usersResp.data);
+
     const users = usersResp.data;
     const usersMap = {};
-    users.forEach((user) => {
-      usersMap[user.id] = user;
-    })
+    users.forEach((u) => {
+      usersMap[u.id] = u;
+    });
+
+    console.log('Users Map:', usersMap);
 
     // fetch all my channels
-    const channelsResp = await axios.get(`${getUrlBase()}/chats`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const chatsResp = await axios.get(`${getUrlBase()}/chats`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-    const channels = channelsResp.data;
+    const channels = chatsResp.data;
 
-    // Store user info, token and workspace in local storage
+    // Store user info, token, and workspace in localStorage
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('token', token);
     localStorage.setItem('workspace', JSON.stringify(workspace));
     localStorage.setItem('users', JSON.stringify(usersMap));
     localStorage.setItem('channels', JSON.stringify(channels));
 
-    // Commit the mutations to update the state.
+    // Commit the mutations to update the state
     commit('setUser', user);
     commit('setToken', token);
     commit('setWorkspace', workspace);
@@ -249,7 +260,7 @@ async function loadState(response, commit) {
 
     return user;
   } catch (error) {
-    console.error('Error loading user state:', error);
+    console.error('Failed to load user state:', error);
     throw error;
   }
 }
