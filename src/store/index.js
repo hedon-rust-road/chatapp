@@ -139,32 +139,25 @@ export default createStore({
               Authorization: `Bearer ${state.token}`,
             },
           });
-          /* We should conver sender_id to user object
-          [
-            {
-              "id": 1,
-              "chat_id": 1,
-              "sender_id": 1,
-              "content": "Hello, World!",
-              "files": [],
-              "created_at": "2024-08-18T04:07:54.087786Z"
-            }
-          ]
-          */
           let messages = response.data;
-          console.log("state.users", state.users);
-          console.log("messages", messages);
-          messages = messages.map((message) => {
-            return {
-              ...message,
-              sender: state.users[message.senderId],
-            };
-          } );
-          console.log('Fetched messages for channel:', messages);
           commit('setMessages', { channelId, messages });
         } catch (error) {
           console.error(`Failed to fetch messages for channel ${channelId}:`, error);
         }
+      }
+    },
+    async sendMessage({ state, commit }, payload) {
+      try {
+        const response = await axios.post(`${getUrlBase()}/chats/${payload.chatId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${state.token}`,
+          },
+        });
+        console.log('Message sent:', response.data);
+        commit('addMessage', { channelId: payload.chatId, message: response.data });
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        throw error;
       }
     },
     addMessage({ commit }, { channelId, message }) {
@@ -183,6 +176,9 @@ export default createStore({
     },
     getUser(state) {
       return state.user;
+    },
+    getUserById: (state) => (id) => {
+      return state.users[id];
     },
     getWorkspace(state) {
       return state.workspace;

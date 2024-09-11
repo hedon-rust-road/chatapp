@@ -5,10 +5,10 @@
     </div>
     <div v-else>
       <div v-for="message in messages" :key="message.id" class="message">
-        <img :src="`https://ui-avatars.com/api/?name=${message.sender.fullname.replace(' ', '+')}`" class="avatar" alt="Avatar" />
+        <img :src="`https://ui-avatars.com/api/?name=${getSender(message.senderId).fullname.replace(' ', '+')}`" class="avatar" alt="Avatar" />
         <div class="message-content">
           <div class="message-header">
-            <span class="message-user">{{ message.sender.fullname }}</span>
+            <span class="message-user">{{ getSender(message.senderId).fullname }}</span>
             <span class="message-time">{{ formatTime(message.createdAt) }}</span>
           </div>
           <div class="message-text">{{ message.content }}</div>
@@ -46,6 +46,9 @@ export default {
     },
     fetchMessages(channelId) {
       this.$store.dispatch('fetchMessagesForChannel', channelId);
+    },
+    getSender(userId) {
+      return this.$store.getters.getUserById(userId);
     }
   },
   mounted() {
