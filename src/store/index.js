@@ -86,7 +86,7 @@ export default createStore({
       if (state.sse) {
         state.sse.close();
       }
-      const sse = initSSE(state.token);
+      const sse = initSSE(this);
       commit('setSSE', sse);
     },
     closeSSE({ state }) {
