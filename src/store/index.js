@@ -1,7 +1,7 @@
 import { createStore } from 'vuex';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { getUrlBase } from '../utils';
+import { getUrlBase, initSSE } from '../utils';
 
 export default createStore({
   state: {
@@ -12,8 +12,12 @@ export default createStore({
     messages: {},       // Messages hashmap, keyed by channel ID
     users: {},          // Users hashmap, keyed by channel ID
     activeChannel: null, // Currently active channel
+    sse: null,         // Server-sent events instance
   },
   mutations: {
+    setSSE(state, sse) {
+      state.sse = sse;
+    },
     setUser(state, user) {
       state.user = user;
     },
@@ -38,7 +42,8 @@ export default createStore({
     },
     addMessage(state, { channelId, message }) {
       if (state.messages[channelId]) {
-        state.messages[channelId].push(message);
+        // we should prepend the message to the list
+        state.messages[channelId].unshift(message);
       } else {
         state.messages[channelId] = message;
       }
@@ -77,6 +82,19 @@ export default createStore({
     },
   },
   actions: {
+    initSSE({ state, commit }) {
+      if (state.sse) {
+        state.sse.close();
+      }
+      const sse = initSSE(state.token);
+      commit('setSSE', sse);
+    },
+    closeSSE({ state }) {
+      if (state.sse) {
+        state.sse.close();
+        commit('setSSE', null);
+      }
+    },
     async signup({ commit }, { email, fullname, password, workspace }) {
       try {
         const response = await axios.post(`${getUrlBase()}/signup`, {
@@ -86,7 +104,7 @@ export default createStore({
           workspace,
         });
         
-        const user = await loadState(response, commit);
+        const user = await loadState(response, this, commit);
         return user;
       } catch (error) {
         console.error('Signup failed:', error);
@@ -100,7 +118,7 @@ export default createStore({
           password,
         });
 
-        const user = await loadState(response, commit);
+        const user = await loadState(response, this, commit);
         return user;
       } catch (error) {
         console.error('Signin failed:', error);
@@ -209,7 +227,7 @@ export default createStore({
   },
 });
 
-async function loadState(response, commit) {
+async function loadState(response, self, commit) {
   const token = response.data.token;
   const user = jwtDecode(token); // Decode the JWT to get user info
   const workspace = { id: user.wsId, name: user.wsName };
@@ -253,6 +271,9 @@ async function loadState(response, commit) {
     commit('setWorkspace', workspace);
     commit('setChannels', channels);
     commit('setUsers', usersMap);
+
+    // call initSSE action
+    await self.dispatch('initSSE');
 
     return user;
   } catch (error) {
