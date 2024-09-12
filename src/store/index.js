@@ -172,7 +172,6 @@ export default createStore({
           },
         });
         console.log('Message sent:', response.data);
-        commit('addMessage', { channelId: payload.chatId, message: response.data });
       } catch (error) {
         console.error('Failed to send message:', error);
         throw error;
